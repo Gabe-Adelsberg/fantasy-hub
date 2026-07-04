@@ -21,3 +21,23 @@ def create_access_token(data: dict):
         SECRET_KEY,
         algorithm=ALGORITHM
     )
+
+from jose import JWTError, jwt
+
+def verify_access_token(token: str):
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        email: str = payload.get("sub")
+
+        if email is None:
+            return None
+
+        return email
+
+    except JWTError:
+        return None
