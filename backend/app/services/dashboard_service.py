@@ -32,7 +32,7 @@ def build_dashboard(league):
     return {
     "league": serialize_league(league_info),
     "members": serialize_members(members),
-    "matchups": serialize_matchups(matchups),
+    "matchups": serialize_matchups(matchups, standings),
     "standings": serialize_standings(standings),
     "power_rankings": power_rankings,
 }
