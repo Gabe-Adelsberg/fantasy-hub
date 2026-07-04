@@ -6,6 +6,8 @@ from app.db.models.user import User
 from app.db import models
 from app.db.models.league import League
 from app.api import leagues
+from app.api import dashboard
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -14,6 +16,7 @@ app = FastAPI(
 )
 app.include_router(users.router)
 app.include_router(leagues.router)
+app.include_router(dashboard.router)
 @app.get("/")
 def root():
     return {"message": "Fantasy Hub backend is running"}
