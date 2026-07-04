@@ -22,3 +22,25 @@ def create_league(
     db.refresh(new_league)
 
     return new_league
+
+def get_user_leagues(
+    db: Session,
+    current_user: User
+):
+    return (
+        db.query(League)
+        .filter(League.commissioner_id == current_user.id)
+        .all()
+    )
+
+def get_user_leagues(
+    db: Session,
+    current_user: User
+):
+    return (
+        db.query(League)
+        .filter(
+            League.commissioner_id == current_user.id
+        )
+        .all()
+    )
