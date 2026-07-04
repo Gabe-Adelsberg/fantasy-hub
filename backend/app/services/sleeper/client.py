@@ -4,15 +4,15 @@ from fastapi import HTTPException
 SLEEPER_BASE_URL = "https://api.sleeper.app/v1"
 
 
-def get_sleeper_league(league_id: str) -> dict:
-    url = f"{SLEEPER_BASE_URL}/league/{league_id}"
+def sleeper_get(path: str) -> dict:
+    url = f"{SLEEPER_BASE_URL}{path}"
 
     response = requests.get(url, timeout=10)
 
     if response.status_code == 404:
         raise HTTPException(
             status_code=404,
-            detail="Sleeper league not found."
+            detail="Sleeper resource not found."
         )
 
     if response.status_code != 200:

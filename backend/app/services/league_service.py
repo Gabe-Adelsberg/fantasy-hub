@@ -45,7 +45,7 @@ def get_user_leagues(
         .all()
     )
 
-from app.services.sleeper_service import get_sleeper_league
+from app.services.sleeper.leagues import get_sleeper_league
 
 def connect_sleeper_league(
     db: Session,
