@@ -9,6 +9,8 @@ from app.serializers.members import serialize_members
 from app.serializers.matchups import serialize_matchups
 from app.serializers.standings import serialize_standings
 
+from app.services.rankings.power import build_power_rankings
+
 def build_dashboard(league):
     sleeper_id = league.sleeper_league_id
 
@@ -25,10 +27,12 @@ def build_dashboard(league):
     )
 
     standings = build_standings(rosters, members)
+    power_rankings = build_power_rankings(standings, matchups)
 
     return {
     "league": serialize_league(league_info),
     "members": serialize_members(members),
     "matchups": serialize_matchups(matchups),
     "standings": serialize_standings(standings),
+    "power_rankings": power_rankings,
 }
