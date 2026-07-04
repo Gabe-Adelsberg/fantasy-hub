@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.api import users
 from app.core.config import settings
 from app.db.database import Base, engine
+from app.db.models.user import User
 from app.db import models
 
 Base.metadata.create_all(bind=engine)
