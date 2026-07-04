@@ -13,6 +13,7 @@ export function LoginPage() {
     const data = await login(email, password);
 
     localStorage.setItem("token", data.access_token);
+    localStorage.setItem("username", email.split("@")[0]);
     setToken(data.access_token);
 
     navigate("/");

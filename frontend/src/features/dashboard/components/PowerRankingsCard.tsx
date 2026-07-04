@@ -7,12 +7,18 @@ export function PowerRankingsCard({ rankings }: { rankings: any[] }) {
         {rankings.map((team) => (
           <div
             key={team.roster_id}
-            className="flex justify-between rounded-xl bg-zinc-950 px-4 py-3"
+            className="flex items-center justify-between gap-4 rounded-xl bg-zinc-950 px-4 py-3"
           >
-            <span>
-              #{team.rank} {team.team}
-            </span>
-            <span className="font-semibold text-blue-400">
+            <div className="min-w-0">
+              <p className="truncate font-medium text-white">
+                #{team.rank} {team.team}
+              </p>
+              <p className="text-sm text-zinc-500">
+                {team.record}
+              </p>
+            </div>
+
+            <span className="shrink-0 font-semibold text-blue-400">
               {team.power_score}
             </span>
           </div>

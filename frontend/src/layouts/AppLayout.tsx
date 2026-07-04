@@ -1,13 +1,12 @@
 import { Outlet } from "react-router-dom";
+import Sidebar from "../components/layout/Sidebar";
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <header className="border-b border-zinc-800 px-8 py-4">
-        <h1 className="text-2xl font-bold">Fantasy Hub</h1>
-      </header>
+    <div className="flex min-h-screen bg-zinc-950">
+      <Sidebar />
 
-      <main className="p-8">
+      <main className="flex-1 overflow-auto p-10">
         <Outlet />
       </main>
     </div>

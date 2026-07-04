@@ -1,6 +1,7 @@
 import { useDashboard } from "../hooks";
 import { PowerRankingsCard } from "../components/PowerRankingsCard";
 import { WeeklyAwardsCard } from "../components/WeeklyAwardsCard";
+import Header from "../../../components/layout/Header";
 
 export default function DashboardPage() {
   const { dashboard, loading } = useDashboard(1);
@@ -19,8 +20,12 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      <Header />
+
       <PowerRankingsCard rankings={dashboard.power_rankings} />
+
       <WeeklyAwardsCard awards={dashboard.weekly_awards} />
     </div>
+    
   );
 }
