@@ -11,3 +11,4 @@ class League(Base):
     sport = Column(String, nullable=False)
     season = Column(Integer, nullable=False)
     commissioner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    sleeper_league_id = Column(String, unique=True, nullable=True)

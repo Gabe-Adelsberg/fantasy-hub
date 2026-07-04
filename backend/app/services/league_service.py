@@ -44,3 +44,26 @@ def get_user_leagues(
         )
         .all()
     )
+
+from app.services.sleeper_service import get_sleeper_league
+
+def connect_sleeper_league(
+    db: Session,
+    league_id: str,
+    current_user: User
+):
+    sleeper_data = get_sleeper_league(league_id)
+
+    league = League(
+        name=sleeper_data["name"],
+        sport=sleeper_data["sport"],
+        season=sleeper_data["season"],
+        commissioner_id=current_user.id,
+        sleeper_league_id=league_id,
+    )
+
+    db.add(league)
+    db.commit()
+    db.refresh(league)
+
+    return league
