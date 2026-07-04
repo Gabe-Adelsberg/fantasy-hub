@@ -8,7 +8,7 @@ from app.db.models.user import User
 from app.services.dashboard_service import build_dashboard
 
 router = APIRouter(
-    prefix="/dashboard",
+    prefix="/api/v1/dashboard",
     tags=["Dashboard"],
 )
 

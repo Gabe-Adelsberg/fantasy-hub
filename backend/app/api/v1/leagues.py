@@ -25,7 +25,7 @@ from app.services.league_service import (
 )
 
 router = APIRouter(
-    prefix="/leagues",
+    prefix="/api/v1/leagues",
     tags=["Leagues"]
 )
 

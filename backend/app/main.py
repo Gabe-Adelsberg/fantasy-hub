@@ -1,12 +1,10 @@
 from fastapi import FastAPI
-from app.api import users
 from app.core.config import settings
 from app.db.database import Base, engine
 from app.db.models.user import User
 from app.db import models
 from app.db.models.league import League
-from app.api import leagues
-from app.api import dashboard
+from app.api.v1 import users, leagues, dashboard
 
 Base.metadata.create_all(bind=engine)
 
