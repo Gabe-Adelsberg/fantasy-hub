@@ -3,13 +3,14 @@ from app.services.sleeper.users import get_league_users
 from app.services.sleeper.rosters import get_league_rosters
 from app.services.sleeper.matchups import get_matchups
 from app.services.standings_service import build_standings
+from app.services.rankings.power import build_power_rankings
+from app.services.awards.weekly import calculate_weekly_awards, enrich_awards
 
 from app.serializers.league import serialize_league
 from app.serializers.members import serialize_members
 from app.serializers.matchups import serialize_matchups
 from app.serializers.standings import serialize_standings
 
-from app.services.rankings.power import build_power_rankings
 
 def build_dashboard(league):
     sleeper_id = league.sleeper_league_id
@@ -18,21 +19,21 @@ def build_dashboard(league):
     members = get_league_users(sleeper_id)
     rosters = get_league_rosters(sleeper_id)
 
-    # Hardcoded for now
     current_week = 1
 
-    matchups = get_matchups(
-        sleeper_id,
-        current_week,
-    )
+    matchups = get_matchups(sleeper_id, current_week)
 
     standings = build_standings(rosters, members)
     power_rankings = build_power_rankings(standings, matchups)
 
+    weekly_awards = calculate_weekly_awards(matchups)
+    weekly_awards = enrich_awards(weekly_awards, standings)
+
     return {
-    "league": serialize_league(league_info),
-    "members": serialize_members(members),
-    "matchups": serialize_matchups(matchups, standings),
-    "standings": serialize_standings(standings),
-    "power_rankings": power_rankings,
-}
+        "league": serialize_league(league_info),
+        "members": serialize_members(members),
+        "matchups": serialize_matchups(matchups, standings),
+        "standings": serialize_standings(standings),
+        "power_rankings": power_rankings,
+        "weekly_awards": weekly_awards,
+    }
