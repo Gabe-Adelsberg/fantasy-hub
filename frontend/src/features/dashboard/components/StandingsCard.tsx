@@ -1,11 +1,13 @@
-export function StandingsCard({ standings }: { standings: any[] }) {
+import type { Standing } from "@/types/dashboard";
+
+export function StandingsCard({ standings }: { standings: Standing[] }) {
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+    <section className="surface p-6">
       <h2 className="text-2xl font-semibold text-white">Standings</h2>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-zinc-800">
+      <div className="mt-4 overflow-hidden rounded-xl border border-white/10">
         <table className="w-full text-left text-sm">
-          <thead className="bg-zinc-950 text-zinc-400">
+          <thead className="bg-black/30 text-zinc-400">
             <tr>
               <th className="px-4 py-3">Rank</th>
               <th className="px-4 py-3">Team</th>
@@ -16,8 +18,11 @@ export function StandingsCard({ standings }: { standings: any[] }) {
           </thead>
 
           <tbody>
-            {standings.map((team: any) => (
-              <tr key={team.rank} className="border-t border-zinc-800">
+            {standings.map((team) => (
+              <tr
+                key={team.rank}
+                className="border-t border-white/10 transition hover:bg-white/[0.035]"
+              >
                 <td className="px-4 py-3 text-zinc-400">#{team.rank}</td>
                 <td className="px-4 py-3 font-medium text-white">
                   {team.team}

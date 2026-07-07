@@ -1,9 +1,12 @@
+import type { Dashboard } from "@/types/dashboard";
+
 type Props = {
-  dashboard: any;
+  dashboard: Dashboard;
 };
 
 export function OverviewCards({ dashboard }: Props) {
   const leader = dashboard.power_rankings[0];
+  const highScore = dashboard.weekly_awards.highest_score;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -15,17 +18,17 @@ export function OverviewCards({ dashboard }: Props) {
 
       <Card
         title="Current Week"
-        value="1"
+        value={dashboard.week}
       />
 
       <Card
         title="League Leader"
-        value={leader.team}
+        value={leader?.team ?? "TBD"}
       />
 
       <Card
         title="Highest Score"
-        value={dashboard.weekly_awards.highest_score.points}
+        value={highScore?.points ?? "TBD"}
       />
 
     </div>
@@ -40,7 +43,7 @@ function Card({
   value: string | number;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+    <div className="metric-card">
       <p className="text-sm text-zinc-400">
         {title}
       </p>

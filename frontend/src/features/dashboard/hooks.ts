@@ -1,30 +1,21 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+
 import { getDashboard } from "./api";
-import type { Dashboard } from "@/types/dashboard";
 
 export function useDashboard(leagueId: number, week?: number) {
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
+  const query = useQuery({
+    queryKey: ["dashboard", leagueId, week ?? "latest"],
+    queryFn: () => getDashboard(leagueId, token ?? "", week),
+    enabled: Boolean(token && leagueId),
+    retry: false,
+    staleTime: 60_000,
+  });
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      const data = await getDashboard(leagueId, token, week);
-
-      setDashboard(data);
-      setLoading(false);
-    }
-
-    load();
-  }, [leagueId, week]);
-
-  return { dashboard, loading };
+  return {
+    dashboard: query.data ?? null,
+    error: query.error,
+    loading: query.isLoading,
+    refetching: query.isFetching && !query.isLoading,
+  };
 }

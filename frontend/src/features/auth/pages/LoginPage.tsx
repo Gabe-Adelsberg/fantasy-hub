@@ -1,1 +1,0 @@
-localStorage.setItem("username", email.split("@")[0]);

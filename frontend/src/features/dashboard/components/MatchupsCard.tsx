@@ -1,13 +1,15 @@
-export function MatchupsCard({ matchups }: { matchups: any[] }) {
+import type { Matchup } from "@/types/dashboard";
+
+export function MatchupsCard({ matchups }: { matchups: Matchup[] }) {
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+    <section className="surface p-6">
       <h2 className="text-2xl font-semibold text-white">Matchups</h2>
 
       <div className="mt-4 space-y-3">
         {matchups.map((matchup) => (
           <div
             key={matchup.matchup_id}
-            className="rounded-xl bg-zinc-950 p-4"
+            className="surface-muted p-4 transition hover:bg-white/[0.055]"
           >
             <div className="flex items-center justify-between gap-4">
               <div>

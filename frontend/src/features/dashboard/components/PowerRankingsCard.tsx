@@ -1,13 +1,15 @@
-export function PowerRankingsCard({ rankings }: { rankings: any[] }) {
+import type { PowerRanking } from "@/types/dashboard";
+
+export function PowerRankingsCard({ rankings }: { rankings: PowerRanking[] }) {
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+    <section className="surface p-6">
       <h2 className="text-2xl font-semibold text-white">Power Rankings</h2>
 
       <div className="mt-4 space-y-2">
         {rankings.map((team) => (
           <div
             key={team.roster_id}
-            className="flex items-center justify-between gap-4 rounded-xl bg-zinc-950 px-4 py-3"
+            className="surface-muted flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/[0.055]"
           >
             <div className="min-w-0">
               <p className="truncate font-medium text-white">
