@@ -16,6 +16,7 @@ router = APIRouter(
 @router.get("/{league_id}")
 def get_dashboard(
     league_id: int,
+    week: int | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -37,4 +38,4 @@ def get_dashboard(
             detail="League is not connected to Sleeper."
         )
 
-    return build_dashboard(league)
+    return build_dashboard(league, week)

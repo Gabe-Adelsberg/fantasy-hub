@@ -1,27 +1,30 @@
 import { useEffect, useState } from "react";
 import { getDashboard } from "./api";
+import type { Dashboard } from "@/types/dashboard";
 
-export function useDashboard(leagueId: number) {
-  const [dashboard, setDashboard] = useState<any>(null);
+export function useDashboard(leagueId: number, week?: number) {
+  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      try {
-        const token = localStorage.getItem("token");
+      setLoading(true);
 
-        if (!token) return;
+      const token = localStorage.getItem("token");
 
-        const data = await getDashboard(leagueId, token);
-
-        setDashboard(data);
-      } finally {
+      if (!token) {
         setLoading(false);
+        return;
       }
+
+      const data = await getDashboard(leagueId, token, week);
+
+      setDashboard(data);
+      setLoading(false);
     }
 
     load();
-  }, [leagueId]);
+  }, [leagueId, week]);
 
   return { dashboard, loading };
 }
