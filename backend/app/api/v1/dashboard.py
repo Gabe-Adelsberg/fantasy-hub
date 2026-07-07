@@ -5,6 +5,7 @@ from app.core.dependencies import get_current_user
 from app.db.database import get_db
 from app.db.models.league import League
 from app.db.models.user import User
+from app.schemas.dashboard import DashboardResponse
 from app.services.dashboard_service import build_dashboard
 
 router = APIRouter(
@@ -13,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{league_id}")
+@router.get("/{league_id}", response_model=DashboardResponse)
 def get_dashboard(
     league_id: int,
     week: int | None = None,

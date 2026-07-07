@@ -5,10 +5,16 @@ def normalize(value: float, max_value: float) -> float:
 
 
 def build_power_rankings(standings: list, matchups: list) -> list:
+    if not standings:
+        return []
+
     max_wins = max(team["wins"] for team in standings)
     max_points_for = max(team["points_for"] for team in standings)
     max_points_against = max(team["points_against"] for team in standings)
-    max_week_points = max(matchup.get("points", 0) for matchup in matchups)
+    max_week_points = max(
+        (matchup.get("points", 0) for matchup in matchups),
+        default=0
+    )
 
     week_points_by_roster = {
         matchup.get("roster_id"): matchup.get("points", 0)

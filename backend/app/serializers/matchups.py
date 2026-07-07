@@ -9,6 +9,9 @@ def serialize_matchups(matchups, standings):
     for matchup in matchups:
         matchup_id = matchup.get("matchup_id")
 
+        if matchup_id is None:
+            continue
+
         if matchup_id not in grouped:
             grouped[matchup_id] = []
 

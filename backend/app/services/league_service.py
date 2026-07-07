@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.db.models.league import League
 from app.db.models.user import User
 from app.schemas.league import LeagueCreate
+from app.services.sleeper.leagues import get_sleeper_league
 
 
 def create_league(
@@ -32,20 +33,6 @@ def get_user_leagues(
         .filter(League.commissioner_id == current_user.id)
         .all()
     )
-
-def get_user_leagues(
-    db: Session,
-    current_user: User
-):
-    return (
-        db.query(League)
-        .filter(
-            League.commissioner_id == current_user.id
-        )
-        .all()
-    )
-
-from app.services.sleeper.leagues import get_sleeper_league
 
 def connect_sleeper_league(
     db: Session,

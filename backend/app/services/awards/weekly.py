@@ -1,18 +1,43 @@
 def calculate_weekly_awards(matchups):
+    if not matchups:
+        return {
+            "highest_score": None,
+            "lowest_score": None,
+            "closest_game": None,
+            "biggest_blowout": None,
+        }
+
+    scored_matchups = [
+        matchup
+        for matchup in matchups
+        if matchup.get("points") is not None
+    ]
+
+    if not scored_matchups:
+        return {
+            "highest_score": None,
+            "lowest_score": None,
+            "closest_game": None,
+            "biggest_blowout": None,
+        }
+
     highest_score = max(
-        matchups,
+        scored_matchups,
         key=lambda team: team["points"]
     )
 
     lowest_score = min(
-        matchups,
+        scored_matchups,
         key=lambda team: team["points"]
     )
 
     grouped = {}
 
-    for team in matchups:
-        matchup_id = team["matchup_id"]
+    for team in scored_matchups:
+        matchup_id = team.get("matchup_id")
+
+        if matchup_id is None:
+            continue
 
         grouped.setdefault(matchup_id, []).append(team)
 
@@ -74,6 +99,9 @@ def enrich_awards(awards, standings):
     }
 
     def enrich_team(team):
+        if team is None:
+            return None
+
         return {
             "team": team_lookup.get(
                 team["roster_id"],
@@ -90,24 +118,26 @@ def enrich_awards(awards, standings):
         awards["lowest_score"]
     )
 
-    awards["closest_game"] = {
-        "winner": enrich_team(
-            awards["closest_game"]["winner"]
-        ),
-        "loser": enrich_team(
-            awards["closest_game"]["loser"]
-        ),
-        "margin": awards["closest_game"]["margin"]
-    }
+    if awards["closest_game"] is not None:
+        awards["closest_game"] = {
+            "winner": enrich_team(
+                awards["closest_game"]["winner"]
+            ),
+            "loser": enrich_team(
+                awards["closest_game"]["loser"]
+            ),
+            "margin": awards["closest_game"]["margin"]
+        }
 
-    awards["biggest_blowout"] = {
-        "winner": enrich_team(
-            awards["biggest_blowout"]["winner"]
-        ),
-        "loser": enrich_team(
-            awards["biggest_blowout"]["loser"]
-        ),
-        "margin": awards["biggest_blowout"]["margin"]
-    }
+    if awards["biggest_blowout"] is not None:
+        awards["biggest_blowout"] = {
+            "winner": enrich_team(
+                awards["biggest_blowout"]["winner"]
+            ),
+            "loser": enrich_team(
+                awards["biggest_blowout"]["loser"]
+            ),
+            "margin": awards["biggest_blowout"]["margin"]
+        }
 
     return awards
