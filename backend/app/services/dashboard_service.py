@@ -11,6 +11,7 @@ from app.services.awards.weekly import calculate_weekly_awards, enrich_awards
 from app.services.league_pulse import build_league_pulse
 from app.services.playoffs import build_playoff_picture
 from app.services.playoffs import _int_setting, _rounds_for_playoff_teams
+from app.services.social_hub import build_social_hub
 from app.serializers.league import serialize_league
 from app.serializers.members import serialize_members
 from app.serializers.matchups import serialize_matchups
@@ -114,12 +115,23 @@ def build_dashboard(league, week: int | None = None):
         week,
         playoff_teams,
     )
+    serialized_standings = serialize_standings(standings)
+    serialized_matchups = serialize_matchups(matchups, standings)
+    social_hub = build_social_hub(
+        league_info,
+        week,
+        serialized_standings,
+        serialized_matchups,
+        weekly_awards,
+        league_pulse,
+        playoff_picture,
+    )
 
     return {
         "league": serialize_league(league_info),
         "members": serialize_members(members),
-        "matchups": serialize_matchups(matchups, standings),
-        "standings": serialize_standings(standings),
+        "matchups": serialized_matchups,
+        "standings": serialized_standings,
         "power_rankings": power_rankings,
         "weekly_awards": weekly_awards,
         "week": week,
@@ -129,4 +141,5 @@ def build_dashboard(league, week: int | None = None):
         },
         "playoff_picture": playoff_picture,
         "league_pulse": league_pulse,
+        "social_hub": social_hub,
     }

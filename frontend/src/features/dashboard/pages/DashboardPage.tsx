@@ -8,6 +8,7 @@ import { WeeklyAwardsCard } from "../components/WeeklyAwardsCard";
 import { MatchupsCard } from "../components/MatchupsCard";
 import { LeaguePulseCard } from "../components/LeaguePulseCard";
 import { PlayoffPictureCard } from "../components/PlayoffPictureCard";
+import { SocialHubCard } from "../components/SocialHubCard";
 import { StandingsCard } from "../components/StandingsCard";
 import { useDashboard } from "../hooks";
 import { useLeagues } from "../../leagues/hooks";
@@ -30,7 +31,7 @@ function getErrorMessage(error: unknown) {
 export default function DashboardPage() {
   const [week, setWeek] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "pulse" | "playoffs"
+    "overview" | "pulse" | "social" | "playoffs"
   >("overview");
   const navigate = useNavigate();
   const { leagueId } = useParams();
@@ -170,6 +171,18 @@ export default function DashboardPage() {
         >
           Playoffs
         </button>
+
+        <button
+          onClick={() => setActiveTab("social")}
+          className={[
+            "rounded-lg px-4 py-3 text-sm font-medium transition",
+            activeTab === "social"
+              ? "bg-white/10 text-white"
+              : "text-zinc-400 hover:bg-white/5 hover:text-white",
+          ].join(" ")}
+        >
+          Social
+        </button>
       </div>
 
       {activeTab === "overview" && (
@@ -198,6 +211,10 @@ export default function DashboardPage() {
 
       {activeTab === "playoffs" && (
         <PlayoffPictureCard playoffPicture={dashboard.playoff_picture} />
+      )}
+
+      {activeTab === "social" && (
+        <SocialHubCard social={dashboard.social_hub} />
       )}
     </div>
   );

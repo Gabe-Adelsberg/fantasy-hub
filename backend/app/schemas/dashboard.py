@@ -167,6 +167,23 @@ class LeaguePulseSummary(BaseModel):
     share_cards: list[dict]
 
 
+class SocialHubSummary(BaseModel):
+    feed: list[dict]
+    trash_talk_prompts: list[str]
+    newspaper: dict
+    weekly_awards: list[dict]
+    polls: list[dict]
+    manager_profiles: list[dict]
+    rivalry_spotlight: dict
+    predictions: list[dict]
+    commissioner_tools: list[str]
+    season_archive: list[dict]
+    share_graphics: list[dict]
+    punishment_tracker: list[dict]
+    hall_of_fame: list[dict]
+    trade_court: dict
+
+
 class DashboardResponse(BaseModel):
     league: LeagueSummary
     members: list[MemberSummary]
@@ -178,3 +195,4 @@ class DashboardResponse(BaseModel):
     week_bounds: WeekBounds
     playoff_picture: PlayoffPictureSummary
     league_pulse: LeaguePulseSummary
+    social_hub: SocialHubSummary

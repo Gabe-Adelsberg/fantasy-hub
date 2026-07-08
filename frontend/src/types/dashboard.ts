@@ -158,6 +158,148 @@ export interface LeaguePulse {
   }>;
 }
 
+export interface SocialHub {
+  feed: Array<{
+    type: string;
+    title: string;
+    body: string;
+  }>;
+  trash_talk_prompts: string[];
+  newspaper: {
+    headline: string;
+    subheadline: string;
+    top_story: string;
+    villain: string;
+    quote: string;
+  };
+  weekly_awards: Array<{
+    title: string;
+    winner: string;
+  }>;
+  polls: Array<{
+    question: string;
+    options: string[];
+  }>;
+  manager_profiles: Array<{
+    team: string;
+    roster_id: number;
+    badge: string;
+    bio: string;
+    trophy_case: string[];
+  }>;
+  rivalry_spotlight: {
+    team: string;
+    opponent: string;
+    record: string;
+    games: number;
+    points_for: number;
+    points_against: number;
+    heat: number;
+  };
+  predictions: Array<{
+    title: string;
+    pick: string;
+    confidence: number;
+    reason: string;
+  }>;
+  commissioner_tools: string[];
+  commissioner_hq: {
+    league_name: string;
+    quick_actions: Array<{
+      title: string;
+      description: string;
+    }>;
+    rulebook: string[];
+    open_items: string[];
+  };
+  season_archive: Array<{
+    week: number;
+    headline: string;
+    summary: string;
+  }>;
+  share_graphics: Array<{
+    title: string;
+    body: string;
+  }>;
+  punishment_tracker: Array<{
+    rank: number;
+    team: string;
+    danger_level: number;
+    reason: string;
+  }>;
+  punishment_hub: {
+    title: string;
+    leader: {
+      rank: number;
+      team: string;
+      danger_level: number;
+      reason: string;
+    } | null;
+    danger_zone: Array<{
+      rank: number;
+      team: string;
+      danger_level: number;
+      reason: string;
+    }>;
+    escape_paths: string[];
+    punishment_history: Array<{
+      season: string;
+      status: string;
+    }>;
+  };
+  hall_of_fame: Array<{
+    title: string;
+    team: string;
+    description: string;
+  }>;
+  rivalry_center: Array<{
+    name: string;
+    team: string;
+    opponent: string;
+    record: string;
+    games: number;
+    points_for: number;
+    points_against: number;
+    heat: number;
+    story: string;
+  }>;
+  weekly_pickem: {
+    rules: string;
+    leaderboard: Array<{
+      manager: string;
+      record: string;
+      note: string;
+    }>;
+    matchups: Array<{
+      title: string;
+      pick: string;
+      confidence: number;
+      reason: string;
+      options: string[];
+    }>;
+  };
+  team_branding: Array<{
+    team: string;
+    roster_id: number;
+    tagline: string;
+    primary_color: string;
+    secondary_color: string;
+    banner_text: string;
+    identity: string;
+  }>;
+  scenario_lab: Array<{
+    team: string;
+    roster_id: number;
+    playoff_odds: number;
+    summary: string;
+    path: string[];
+  }>;
+  trade_court: {
+    prompt: string;
+    status: string;
+  };
+}
+
 export interface Matchup {
   matchup_id: number;
   team_a: string;
@@ -212,4 +354,5 @@ export interface Dashboard {
   week_bounds: WeekBounds;
   playoff_picture: PlayoffPicture;
   league_pulse: LeaguePulse;
+  social_hub: SocialHub;
 }
