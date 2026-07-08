@@ -29,3 +29,18 @@ export async function connectSleeperLeague(
 
   return response.data;
 }
+
+export async function connectSleeperAccount(
+  username: string,
+  token: string
+): Promise<UserLeague[]> {
+  const response = await api.post<UserLeague[]>(
+    "/leagues/connect-sleeper-account",
+    { username },
+    {
+      headers: authHeaders(token),
+    }
+  );
+
+  return response.data;
+}

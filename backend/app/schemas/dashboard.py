@@ -177,15 +177,30 @@ class SocialHubSummary(BaseModel):
     rivalry_spotlight: dict
     predictions: list[dict]
     commissioner_tools: list[str]
+    commissioner_hq: dict
     season_archive: list[dict]
     share_graphics: list[dict]
     punishment_tracker: list[dict]
+    punishment_hub: dict
     hall_of_fame: list[dict]
+    rivalry_center: list[dict]
+    weekly_pickem: dict
+    team_branding: list[dict]
+    scenario_lab: list[dict]
     trade_court: dict
+
+
+class UserTeamSummary(BaseModel):
+    roster_id: int | None = None
+    team: str | None = None
+    display_name: str | None = None
+    sleeper_user_id: str | None = None
+    sleeper_username: str | None = None
 
 
 class DashboardResponse(BaseModel):
     league: LeagueSummary
+    user_team: UserTeamSummary | None = None
     members: list[MemberSummary]
     matchups: list[MatchupSummary]
     standings: list[StandingSummary]

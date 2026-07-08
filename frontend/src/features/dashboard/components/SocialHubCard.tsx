@@ -2,6 +2,13 @@ import type { ReactNode } from "react";
 
 import type { SocialHub } from "@/types/dashboard";
 
+type UserTeam = {
+  roster_id: number | null;
+  team: string | null;
+  display_name: string | null;
+  sleeper_username: string | null;
+};
+
 const EMPTY_SOCIAL_HUB: SocialHub = {
   feed: [],
   trash_talk_prompts: [],
@@ -132,8 +139,32 @@ function withSocialDefaults(social?: Partial<SocialHub> | null): SocialHub {
   };
 }
 
-export function SocialHubCard({ social: rawSocial }: { social?: Partial<SocialHub> | null }) {
+export function SocialHubCard({
+  social: rawSocial,
+  userTeam,
+}: {
+  social?: Partial<SocialHub> | null;
+  userTeam?: UserTeam | null;
+}) {
   const social = withSocialDefaults(rawSocial);
+  const userTeamName = userTeam?.team ?? userTeam?.display_name ?? null;
+  const teamBranding = [...social.team_branding].sort((a, b) => {
+    if (a.roster_id === userTeam?.roster_id) return -1;
+    if (b.roster_id === userTeam?.roster_id) return 1;
+    return 0;
+  });
+  const rivalryCenter = [...social.rivalry_center].sort((a, b) => {
+    const aIsUser =
+      userTeamName !== null &&
+      (a.team === userTeamName || a.opponent === userTeamName);
+    const bIsUser =
+      userTeamName !== null &&
+      (b.team === userTeamName || b.opponent === userTeamName);
+
+    if (aIsUser && !bIsUser) return -1;
+    if (!aIsUser && bIsUser) return 1;
+    return 0;
+  });
 
   return (
     <section className="space-y-6">
@@ -400,9 +431,18 @@ export function SocialHubCard({ social: rawSocial }: { social?: Partial<SocialHu
 
       <Panel title="Rivalry Center">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {social.rivalry_center.map((rivalry) => (
+          {rivalryCenter.map((rivalry) => (
             <div key={rivalry.name} className="surface-muted p-4">
-              <p className="font-semibold text-white">{rivalry.name}</p>
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-semibold text-white">{rivalry.name}</p>
+                {userTeamName &&
+                  (rivalry.team === userTeamName ||
+                    rivalry.opponent === userTeamName) && (
+                    <span className="rounded-full border border-blue-400/30 px-2 py-1 text-xs text-blue-200">
+                      Yours
+                    </span>
+                  )}
+              </div>
               <p className="mt-1 text-sm text-zinc-400">
                 {rivalry.record} / {rivalry.games} game(s) / heat {rivalry.heat}
               </p>
@@ -414,7 +454,7 @@ export function SocialHubCard({ social: rawSocial }: { social?: Partial<SocialHu
 
       <Panel title="Team Branding">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {social.team_branding.slice(0, 6).map((brand) => (
+          {teamBranding.slice(0, 6).map((brand) => (
             <div
               key={brand.roster_id}
               className="overflow-hidden rounded-xl border border-white/10 bg-black/20"
@@ -426,7 +466,14 @@ export function SocialHubCard({ social: rawSocial }: { social?: Partial<SocialHu
                 }}
               />
               <div className="p-4">
-                <p className="font-semibold text-white">{brand.team}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <p className="font-semibold text-white">{brand.team}</p>
+                  {brand.roster_id === userTeam?.roster_id && (
+                    <span className="rounded-full border border-blue-400/30 px-2 py-1 text-xs text-blue-200">
+                      Your team
+                    </span>
+                  )}
+                </div>
                 <p className="mt-1 text-sm text-blue-300">{brand.identity}</p>
                 <p className="mt-2 text-sm text-zinc-400">{brand.tagline}</p>
                 <p className="mt-3 text-xs uppercase tracking-wide text-zinc-500">

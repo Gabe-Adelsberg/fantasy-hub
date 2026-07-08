@@ -17,6 +17,32 @@ from app.serializers.members import serialize_members
 from app.serializers.matchups import serialize_matchups
 from app.serializers.standings import serialize_standings
 
+
+def _build_user_team(league, standings: list[dict]) -> dict | None:
+    sleeper_roster_id = getattr(league, "sleeper_roster_id", None)
+
+    if sleeper_roster_id is None:
+        return None
+
+    for team in standings:
+        if team.get("roster_id") == sleeper_roster_id:
+            return {
+                "roster_id": sleeper_roster_id,
+                "team": team.get("display_name"),
+                "display_name": team.get("display_name"),
+                "sleeper_user_id": getattr(league, "sleeper_user_id", None),
+                "sleeper_username": getattr(league, "sleeper_username", None),
+            }
+
+    return {
+        "roster_id": sleeper_roster_id,
+        "team": None,
+        "display_name": None,
+        "sleeper_user_id": getattr(league, "sleeper_user_id", None),
+        "sleeper_username": getattr(league, "sleeper_username", None),
+    }
+
+
 def get_latest_available_week(sleeper_id: str, league_info: dict) -> int:
     settings = league_info.get("settings", {})
     nfl_state = get_nfl_state()
@@ -129,6 +155,7 @@ def build_dashboard(league, week: int | None = None):
 
     return {
         "league": serialize_league(league_info),
+        "user_team": _build_user_team(league, standings),
         "members": serialize_members(members),
         "matchups": serialized_matchups,
         "standings": serialized_standings,

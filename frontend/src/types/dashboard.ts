@@ -13,6 +13,9 @@ export interface UserLeague {
   season: number;
   commissioner_id: number;
   sleeper_league_id: string | null;
+  sleeper_user_id?: string | null;
+  sleeper_username?: string | null;
+  sleeper_roster_id?: number | null;
 }
 
 export interface PowerRanking {
@@ -345,6 +348,13 @@ export interface WeeklyAwards {
 
 export interface Dashboard {
   league: League;
+  user_team: {
+    roster_id: number | null;
+    team: string | null;
+    display_name: string | null;
+    sleeper_user_id: string | null;
+    sleeper_username: string | null;
+  } | null;
   members: unknown[];
   matchups: Matchup[];
   standings: Standing[];

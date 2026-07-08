@@ -214,7 +214,10 @@ export default function DashboardPage() {
       )}
 
       {activeTab === "social" && (
-        <SocialHubCard social={dashboard.social_hub} />
+        <SocialHubCard
+          social={dashboard.social_hub}
+          userTeam={dashboard.user_team}
+        />
       )}
     </div>
   );
