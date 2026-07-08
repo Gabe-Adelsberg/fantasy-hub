@@ -5,18 +5,56 @@ import { Link } from "react-router-dom";
 import { connectSleeperAccount, connectSleeperLeague } from "../api";
 import { useLeagues } from "../hooks";
 
+function getMutationMessage(error: unknown, fallback: string) {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const response = (
+      error as {
+        response?: { data?: { detail?: string | Array<{ msg?: string }> } };
+      }
+    ).response;
+    const detail = response?.data?.detail;
+
+    if (typeof detail === "string") {
+      return detail;
+    }
+
+    if (Array.isArray(detail)) {
+      return detail.map((item) => item.msg).filter(Boolean).join(" ");
+    }
+  }
+
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const message = (error as { message?: string }).message;
+
+    if (message) {
+      return message;
+    }
+  }
+
+  return fallback;
+}
+
 export default function LeaguesPage() {
   const [sleeperUsername, setSleeperUsername] = useState("");
   const [sleeperLeagueId, setSleeperLeagueId] = useState("");
+  const [accountNotice, setAccountNotice] = useState("");
   const { leagues, loading } = useLeagues();
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token") ?? "";
   const accountMutation = useMutation({
     mutationFn: () => connectSleeperAccount(sleeperUsername.trim(), token),
-    onSuccess: () => {
+    onSuccess: (importedLeagues) => {
       setSleeperUsername("");
+      setAccountNotice(
+        importedLeagues.length > 0
+          ? `Imported ${importedLeagues.length} Sleeper league${
+              importedLeagues.length === 1 ? "" : "s"
+            }.`
+          : "No Sleeper leagues were found for that account."
+      );
       queryClient.invalidateQueries({ queryKey: ["leagues"] });
     },
+    onError: () => setAccountNotice(""),
   });
   const connectMutation = useMutation({
     mutationFn: () => connectSleeperLeague(sleeperLeagueId.trim(), token),
@@ -39,6 +77,7 @@ export default function LeaguesPage() {
       return;
     }
 
+    setAccountNotice("");
     accountMutation.mutate();
   }
 
@@ -64,7 +103,8 @@ export default function LeaguesPage() {
             </h2>
             <p className="mt-2 text-sm text-zinc-400">
               Enter your Sleeper username and Fantasy Hub will import your
-              leagues, then match your account to your roster in each league.
+              leagues from recent NFL seasons, then match your account to your
+              roster in each league.
             </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <input
@@ -86,7 +126,16 @@ export default function LeaguesPage() {
 
             {accountMutation.isError && (
               <p className="mt-3 text-sm text-red-400">
-                Could not find that Sleeper account or import its leagues.
+                {getMutationMessage(
+                  accountMutation.error,
+                  "Could not find that Sleeper account or import its leagues."
+                )}
+              </p>
+            )}
+
+            {accountNotice && (
+              <p className="mt-3 text-sm text-blue-300">
+                {accountNotice}
               </p>
             )}
           </div>
@@ -115,7 +164,10 @@ export default function LeaguesPage() {
 
             {connectMutation.isError && (
               <p className="mt-3 text-sm text-red-400">
-                Could not connect that league. Check the ID and try again.
+                {getMutationMessage(
+                  connectMutation.error,
+                  "Could not connect that league. Check the ID and try again."
+                )}
               </p>
             )}
           </div>

@@ -32,6 +32,9 @@ def _build_user_team(league, standings: list[dict]) -> dict | None:
                 "display_name": team.get("display_name"),
                 "sleeper_user_id": getattr(league, "sleeper_user_id", None),
                 "sleeper_username": getattr(league, "sleeper_username", None),
+                "sleeper_team_verified": bool(
+                    getattr(league, "sleeper_team_verified", 0)
+                ),
             }
 
     return {
@@ -40,6 +43,9 @@ def _build_user_team(league, standings: list[dict]) -> dict | None:
         "display_name": None,
         "sleeper_user_id": getattr(league, "sleeper_user_id", None),
         "sleeper_username": getattr(league, "sleeper_username", None),
+        "sleeper_team_verified": bool(
+            getattr(league, "sleeper_team_verified", 0)
+        ),
     }
 
 

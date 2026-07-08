@@ -215,6 +215,7 @@ export default function DashboardPage() {
 
       {activeTab === "social" && (
         <SocialHubCard
+          leagueId={parsedLeagueId}
           social={dashboard.social_hub}
           userTeam={dashboard.user_team}
         />

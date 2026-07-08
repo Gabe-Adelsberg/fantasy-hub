@@ -19,3 +19,21 @@ export async function getDashboard(
 
   return response.data;
 }
+
+export async function verifySleeperTeam(
+  leagueId: number,
+  code: string,
+  token: string
+) {
+  const response = await api.post(
+    `/leagues/${leagueId}/verify-team`,
+    { code },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data;
+}

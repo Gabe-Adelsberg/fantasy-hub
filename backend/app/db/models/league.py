@@ -15,3 +15,4 @@ class League(Base):
     sleeper_user_id = Column(String, nullable=True)
     sleeper_username = Column(String, nullable=True)
     sleeper_roster_id = Column(Integer, nullable=True)
+    sleeper_team_verified = Column(Integer, default=0, nullable=False)

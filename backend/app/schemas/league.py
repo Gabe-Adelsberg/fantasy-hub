@@ -16,6 +16,7 @@ class LeagueResponse(BaseModel):
     sleeper_user_id: str | None = None
     sleeper_username: str | None = None
     sleeper_roster_id: int | None = None
+    sleeper_team_verified: bool = False
 
     class Config:
         from_attributes = True

@@ -9,3 +9,7 @@ class SleeperAccountConnect(BaseModel):
     username: str
     season: int | None = None
     sport: str = "nfl"
+
+
+class SleeperTeamVerification(BaseModel):
+    code: str

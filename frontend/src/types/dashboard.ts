@@ -16,6 +16,7 @@ export interface UserLeague {
   sleeper_user_id?: string | null;
   sleeper_username?: string | null;
   sleeper_roster_id?: number | null;
+  sleeper_team_verified?: boolean;
 }
 
 export interface PowerRanking {
@@ -354,6 +355,7 @@ export interface Dashboard {
     display_name: string | null;
     sleeper_user_id: string | null;
     sleeper_username: string | null;
+    sleeper_team_verified: boolean;
   } | null;
   members: unknown[];
   matchups: Matchup[];

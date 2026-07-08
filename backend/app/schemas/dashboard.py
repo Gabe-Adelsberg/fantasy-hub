@@ -196,6 +196,7 @@ class UserTeamSummary(BaseModel):
     display_name: str | None = None
     sleeper_user_id: str | None = None
     sleeper_username: str | None = None
+    sleeper_team_verified: bool = False
 
 
 class DashboardResponse(BaseModel):

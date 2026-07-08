@@ -21,6 +21,7 @@ def ensure_lightweight_schema_updates():
         "sleeper_user_id": "VARCHAR",
         "sleeper_username": "VARCHAR",
         "sleeper_roster_id": "INTEGER",
+        "sleeper_team_verified": "INTEGER DEFAULT 0 NOT NULL",
     }
 
     with engine.begin() as connection:

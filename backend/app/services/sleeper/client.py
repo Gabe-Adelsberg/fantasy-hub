@@ -12,14 +12,15 @@ _cache: dict[str, tuple[float, Any]] = {}
 _cache_lock = Lock()
 
 
-def sleeper_get(path: str) -> Any:
+def sleeper_get(path: str, use_cache: bool = True) -> Any:
     now = monotonic()
 
-    with _cache_lock:
-        cached = _cache.get(path)
+    if use_cache:
+        with _cache_lock:
+            cached = _cache.get(path)
 
-        if cached and cached[0] > now:
-            return deepcopy(cached[1])
+            if cached and cached[0] > now:
+                return deepcopy(cached[1])
 
     url = f"{SLEEPER_BASE_URL}{path}"
 
@@ -45,7 +46,8 @@ def sleeper_get(path: str) -> Any:
 
     payload = response.json()
 
-    with _cache_lock:
-        _cache[path] = (now + SLEEPER_CACHE_SECONDS, payload)
+    if use_cache:
+        with _cache_lock:
+            _cache[path] = (now + SLEEPER_CACHE_SECONDS, payload)
 
     return deepcopy(payload)

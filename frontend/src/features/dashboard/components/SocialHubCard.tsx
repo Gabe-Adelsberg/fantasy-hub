@@ -1,5 +1,7 @@
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
+import { verifySleeperTeam } from "../api";
 import type { SocialHub } from "@/types/dashboard";
 
 type UserTeam = {
@@ -7,6 +9,23 @@ type UserTeam = {
   team: string | null;
   display_name: string | null;
   sleeper_username: string | null;
+  sleeper_team_verified: boolean;
+};
+
+type TeamBrand = SocialHub["team_branding"][number];
+
+type TeamBrandCustomization = Partial<
+  Pick<
+    TeamBrand,
+    | "team"
+    | "tagline"
+    | "primary_color"
+    | "secondary_color"
+    | "banner_text"
+    | "identity"
+  >
+> & {
+  background_image?: string;
 };
 
 const EMPTY_SOCIAL_HUB: SocialHub = {
@@ -139,20 +158,102 @@ function withSocialDefaults(social?: Partial<SocialHub> | null): SocialHub {
   };
 }
 
+function brandStorageKey(rosterId?: number | null) {
+  return rosterId ? `fantasy-hub:team-brand:${rosterId}` : null;
+}
+
+function loadBrandCustomization(
+  storageKey: string | null
+): TeamBrandCustomization {
+  if (!storageKey) {
+    return {};
+  }
+
+  try {
+    const storedValue = window.localStorage.getItem(storageKey);
+
+    return storedValue ? JSON.parse(storedValue) : {};
+  } catch {
+    return {};
+  }
+}
+
+function cleanBrandCustomization(
+  customization: TeamBrandCustomization
+): TeamBrandCustomization {
+  return Object.fromEntries(
+    Object.entries(customization).filter(([, value]) => value?.trim())
+  ) as TeamBrandCustomization;
+}
+
+function applyBrandCustomization(
+  brand: TeamBrand,
+  customization: TeamBrandCustomization
+): TeamBrand {
+  return {
+    ...brand,
+    ...cleanBrandCustomization(customization),
+  };
+}
+
+function brandBackgroundStyle(brand: TeamBrand, image?: string) {
+  const gradient = `linear-gradient(135deg, ${brand.primary_color}, ${brand.secondary_color})`;
+
+  if (!image) {
+    return { background: gradient };
+  }
+
+  return {
+    backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.5), rgba(0,0,0,0.15)), url(${image})`,
+    backgroundPosition: "center",
+    backgroundSize: "cover",
+  };
+}
+
 export function SocialHubCard({
+  leagueId,
   social: rawSocial,
   userTeam,
 }: {
+  leagueId: number;
   social?: Partial<SocialHub> | null;
   userTeam?: UserTeam | null;
 }) {
   const social = withSocialDefaults(rawSocial);
   const userTeamName = userTeam?.team ?? userTeam?.display_name ?? null;
-  const teamBranding = [...social.team_branding].sort((a, b) => {
-    if (a.roster_id === userTeam?.roster_id) return -1;
-    if (b.roster_id === userTeam?.roster_id) return 1;
-    return 0;
-  });
+  const customizationKey = brandStorageKey(userTeam?.roster_id);
+  const [brandCustomization, setBrandCustomization] =
+    useState<TeamBrandCustomization>(() =>
+      loadBrandCustomization(customizationKey)
+    );
+  const [isBrandEditorOpen, setIsBrandEditorOpen] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationMessage, setVerificationMessage] = useState("");
+  const [isVerifyingTeam, setIsVerifyingTeam] = useState(false);
+  const [isTeamVerified, setIsTeamVerified] = useState(
+    Boolean(userTeam?.sleeper_team_verified)
+  );
+  const userBrand = social.team_branding.find(
+    (brand) => brand.roster_id === userTeam?.roster_id
+  );
+  const previewUserBrand = userBrand
+    ? applyBrandCustomization(userBrand, brandCustomization)
+    : null;
+  const teamBranding = useMemo(
+    () =>
+      social.team_branding
+        .map((brand) =>
+          brand.roster_id === userTeam?.roster_id
+            ? applyBrandCustomization(brand, brandCustomization)
+            : brand
+        )
+        .sort((a, b) => {
+          if (a.roster_id === userTeam?.roster_id) return -1;
+          if (b.roster_id === userTeam?.roster_id) return 1;
+          return 0;
+        }),
+    [brandCustomization, social.team_branding, userTeam?.roster_id]
+  );
   const rivalryCenter = [...social.rivalry_center].sort((a, b) => {
     const aIsUser =
       userTeamName !== null &&
@@ -165,6 +266,113 @@ export function SocialHubCard({
     if (!aIsUser && bIsUser) return 1;
     return 0;
   });
+
+  useEffect(() => {
+    setBrandCustomization(loadBrandCustomization(customizationKey));
+  }, [customizationKey]);
+
+  useEffect(() => {
+    setIsTeamVerified(Boolean(userTeam?.sleeper_team_verified));
+  }, [userTeam?.sleeper_team_verified]);
+
+  function updateBrandCustomization(
+    field: keyof TeamBrandCustomization,
+    value: string
+  ) {
+    setBrandCustomization((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  function saveBrandCustomization() {
+    if (!customizationKey) {
+      return;
+    }
+
+    if (!isTeamVerified) {
+      setVerificationMessage("Verify this Sleeper team before saving changes.");
+      return;
+    }
+
+    window.localStorage.setItem(
+      customizationKey,
+      JSON.stringify(cleanBrandCustomization(brandCustomization))
+    );
+    setBrandCustomization(cleanBrandCustomization(brandCustomization));
+  }
+
+  function resetBrandCustomization() {
+    if (customizationKey) {
+      window.localStorage.removeItem(customizationKey);
+    }
+
+    setBrandCustomization({});
+  }
+
+  function uploadBrandImage(file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      return;
+    }
+
+    if (file.size > 1_500_000) {
+      window.alert("Please choose an image under 1.5 MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        updateBrandCustomization("background_image", reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function openBrandEditor() {
+    setIsBrandEditorOpen(true);
+
+    if (!verificationCode) {
+      setVerificationCode(
+        `FH-${Math.random().toString(36).slice(2, 7).toUpperCase()}`
+      );
+    }
+  }
+
+  function getVerificationError(error: unknown) {
+    if (typeof error === "object" && error !== null && "response" in error) {
+      const response = (error as { response?: { data?: { detail?: string } } })
+        .response;
+
+      return response?.data?.detail ?? "Could not verify this Sleeper team.";
+    }
+
+    return "Could not verify this Sleeper team.";
+  }
+
+  async function verifyTeam() {
+    if (!verificationCode || isVerifyingTeam) {
+      return;
+    }
+
+    setIsVerifyingTeam(true);
+    setVerificationMessage("");
+
+    try {
+      const token = localStorage.getItem("token") ?? "";
+      await verifySleeperTeam(leagueId, verificationCode, token);
+      setIsTeamVerified(true);
+      setVerificationMessage("Team verified. You can save brand changes now.");
+    } catch (error) {
+      setVerificationMessage(getVerificationError(error));
+    } finally {
+      setIsVerifyingTeam(false);
+    }
+  }
 
   return (
     <section className="space-y-6">
@@ -453,6 +661,34 @@ export function SocialHubCard({
       </Panel>
 
       <Panel title="Team Branding">
+        {previewUserBrand ? (
+          <div className="mb-4 flex flex-col gap-3 rounded-xl border border-blue-400/20 bg-blue-500/[0.06] p-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="font-semibold text-white">
+                {isTeamVerified ? "Team verified" : "Verify and customize"}
+              </p>
+              <p className="mt-1 text-sm text-zinc-400">
+                Edit your team name, colors, banner, and background image from
+                a focused pop-up.
+              </p>
+            </div>
+            <button
+              onClick={openBrandEditor}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500"
+            >
+              Customize brand
+            </button>
+          </div>
+        ) : (
+          <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <p className="font-medium text-white">Connect your Sleeper team</p>
+            <p className="mt-1 text-sm text-zinc-400">
+              Once your Sleeper account is matched to a roster, your team brand
+              will be customizable here.
+            </p>
+          </div>
+        )}
+
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {teamBranding.slice(0, 6).map((brand) => (
             <div
@@ -461,9 +697,12 @@ export function SocialHubCard({
             >
               <div
                 className="h-24"
-                style={{
-                  background: `linear-gradient(135deg, ${brand.primary_color}, ${brand.secondary_color})`,
-                }}
+                style={brandBackgroundStyle(
+                  brand,
+                  brand.roster_id === userTeam?.roster_id
+                    ? brandCustomization.background_image
+                    : undefined
+                )}
               />
               <div className="p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -484,6 +723,191 @@ export function SocialHubCard({
           ))}
         </div>
       </Panel>
+
+      {previewUserBrand && isBrandEditorOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm">
+          <div className="mt-8 w-full max-w-4xl rounded-xl border border-white/10 bg-zinc-950 p-5 shadow-2xl">
+            <div className="flex flex-col gap-3 border-b border-white/10 pb-4 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className="eyebrow">Team Branding</p>
+                <h2 className="mt-1 text-2xl font-semibold text-white">
+                  Customize {previewUserBrand.team}
+                </h2>
+                <p className="mt-1 text-sm text-zinc-400">
+                  Verify the Sleeper roster once, then save your custom brand on
+                  this device.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsBrandEditorOpen(false)}
+                className="rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-300 transition hover:bg-white/10 hover:text-white"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
+              <div className="space-y-4">
+                <div
+                  className="rounded-xl border border-white/10 p-5"
+                  style={brandBackgroundStyle(
+                    previewUserBrand,
+                    brandCustomization.background_image
+                  )}
+                >
+                  <p className="text-2xl font-semibold text-white drop-shadow">
+                    {previewUserBrand.team}
+                  </p>
+                  <p className="mt-2 text-sm text-white/85 drop-shadow">
+                    {previewUserBrand.banner_text}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-white">
+                        Sleeper team verification
+                      </p>
+                      <p className="mt-1 text-sm text-zinc-400">
+                        Fantasy Hub checks whether Sleeper says your connected
+                        account owns this roster. The code below is only a
+                        fallback if Sleeper cannot confirm ownership directly.
+                      </p>
+                    </div>
+                    <span
+                      className={[
+                        "rounded-full border px-2 py-1 text-xs",
+                        isTeamVerified
+                          ? "border-emerald-400/30 text-emerald-200"
+                          : "border-yellow-400/30 text-yellow-200",
+                      ].join(" ")}
+                    >
+                      {isTeamVerified ? "Verified" : "Unverified"}
+                    </span>
+                  </div>
+                  <div className="mt-3 rounded-lg border border-white/10 bg-black/30 px-3 py-2 font-mono text-lg text-white">
+                    {verificationCode}
+                  </div>
+                  <button
+                    onClick={verifyTeam}
+                    disabled={isTeamVerified || isVerifyingTeam}
+                    className="mt-3 rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isVerifyingTeam
+                      ? "Checking Sleeper..."
+                      : isTeamVerified
+                        ? "Verified"
+                        : "Verify team"}
+                  </button>
+                  {verificationMessage && (
+                    <p className="mt-3 text-sm text-zinc-300">
+                      {verificationMessage}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <BrandInput
+                  label="Team name"
+                  value={brandCustomization.team ?? previewUserBrand.team}
+                  onChange={(value) => updateBrandCustomization("team", value)}
+                />
+                <BrandInput
+                  label="Identity"
+                  value={
+                    brandCustomization.identity ?? previewUserBrand.identity
+                  }
+                  onChange={(value) =>
+                    updateBrandCustomization("identity", value)
+                  }
+                />
+                <BrandInput
+                  label="Tagline"
+                  value={
+                    brandCustomization.tagline ?? previewUserBrand.tagline
+                  }
+                  onChange={(value) =>
+                    updateBrandCustomization("tagline", value)
+                  }
+                />
+                <BrandInput
+                  label="Banner text"
+                  value={
+                    brandCustomization.banner_text ??
+                    previewUserBrand.banner_text
+                  }
+                  onChange={(value) =>
+                    updateBrandCustomization("banner_text", value)
+                  }
+                />
+                <BrandInput
+                  label="Primary color"
+                  type="color"
+                  value={
+                    brandCustomization.primary_color ??
+                    previewUserBrand.primary_color
+                  }
+                  onChange={(value) =>
+                    updateBrandCustomization("primary_color", value)
+                  }
+                />
+                <BrandInput
+                  label="Secondary color"
+                  type="color"
+                  value={
+                    brandCustomization.secondary_color ??
+                    previewUserBrand.secondary_color
+                  }
+                  onChange={(value) =>
+                    updateBrandCustomization("secondary_color", value)
+                  }
+                />
+                <label className="text-sm text-zinc-400 md:col-span-2">
+                  <span>Background image</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) =>
+                      uploadBrandImage(event.target.files?.[0] ?? null)
+                    }
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white file:mr-3 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-sm file:text-white"
+                  />
+                  <span className="mt-1 block text-xs text-zinc-500">
+                    Saved on this device. Use a compressed image under 1.5 MB.
+                  </span>
+                </label>
+                {brandCustomization.background_image && (
+                  <button
+                    onClick={() =>
+                      updateBrandCustomization("background_image", "")
+                    }
+                    className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:bg-white/10 hover:text-white md:col-span-2"
+                  >
+                    Remove background image
+                  </button>
+                )}
+                <div className="flex flex-wrap gap-3 md:col-span-2">
+                  <button
+                    onClick={saveBrandCustomization}
+                    disabled={!isTeamVerified}
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Save brand
+                  </button>
+                  <button
+                    onClick={resetBrandCustomization}
+                    className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:bg-white/10 hover:text-white"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <Panel title="Hall Of Fame">
@@ -556,6 +980,33 @@ function Prompt({ text }: { text: string }) {
         Copy prompt
       </button>
     </div>
+  );
+}
+
+function BrandInput({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: "text" | "color";
+}) {
+  return (
+    <label className="text-sm text-zinc-400">
+      <span>{label}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={[
+          "mt-1 w-full rounded-lg border border-white/10 bg-black/30 text-white outline-none transition focus:border-blue-400",
+          type === "color" ? "h-11 px-2 py-1" : "px-3 py-2",
+        ].join(" ")}
+      />
+    </label>
   );
 }
 

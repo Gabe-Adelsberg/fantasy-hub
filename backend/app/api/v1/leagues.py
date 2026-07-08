@@ -7,12 +7,17 @@ from app.core.dependencies import get_current_user
 from app.db.database import get_db
 from app.db.models.user import User
 from app.schemas.league import LeagueCreate, LeagueResponse
-from app.schemas.sleeper import SleeperAccountConnect, SleeperLeagueConnect
+from app.schemas.sleeper import (
+    SleeperAccountConnect,
+    SleeperLeagueConnect,
+    SleeperTeamVerification,
+)
 from app.services.league_service import (
     create_league,
     connect_sleeper_account,
     connect_sleeper_league,
     get_user_leagues,
+    verify_sleeper_team_code,
 )
 
 router = APIRouter(
@@ -61,4 +66,19 @@ def connect_sleeper_by_account(
         current_user,
         request.season,
         request.sport,
+    )
+
+
+@router.post("/{league_id}/verify-team", response_model=LeagueResponse)
+def verify_sleeper_team(
+    league_id: int,
+    request: SleeperTeamVerification,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return verify_sleeper_team_code(
+        db,
+        league_id,
+        current_user,
+        request.code,
     )
